@@ -2,44 +2,34 @@ import throttle from 'lodash.throttle';
 const formRef = document.querySelector('.feedback-form');
 const LOCALE_STORAGE_KEY = 'feedback-form-state';
 // console.log(formRef);
-const formData = {};
+import {save, load, remove} from './storage'
+
 initPage();
 
 const onFormInpunt = event => {
   const { name, value } = event.target;
-  try {
-    let saveData = localStorage.getItem(LOCALE_STORAGE_KEY);
-    if (saveData) {
-      saveData = JSON.parse(saveData);
-    } else {
-      saveData = {};
-    }
-
+  
+    let saveData = load(LOCALE_STORAGE_KEY);
+    saveData = saveData ? saveData : {};
+   
     saveData[name] = value;
-    const stringifyData = JSON.stringify(saveData);
-    localStorage.setItem(LOCALE_STORAGE_KEY, stringifyData);
-  } catch (error) {
-    console.log(error);
-  }
+   save(LOCALE_STORAGE_KEY, saveData);
+ 
 };
 
 const throttledOnFormInput = throttle(onFormInpunt, 500);
 formRef.addEventListener('input', onFormInpunt);
 
 function initPage() {
-  const saveData = localStorage.getItem(LOCALE_STORAGE_KEY);
+  const saveData = load(LOCALE_STORAGE_KEY);
 
-  if (saveData) {
-    try {
-      const parseData = JSON.parse(saveData);
-      Object.entries(parseData).forEach(([name, value]) => {
+  if (!saveData) {
+    return;
+  }
+  Object.entries(saveData).forEach(([name, value]) => {
         formRef.elements[name].value = value;
       });
-      // console.log(parseData);
-    } catch (error) {
-      console.error(error);
-    }
-  }
+    
 }
 
 const handleSabmit = event => {
@@ -51,6 +41,6 @@ const handleSabmit = event => {
   // console.log(message);
 
     event.currentTarget.reset();
-    localStorage.removeItem(LOCALE_STORAGE_KEY);
+    remove(LOCALE_STORAGE_KEY);
 };
 formRef.addEventListener('submit', handleSabmit);
